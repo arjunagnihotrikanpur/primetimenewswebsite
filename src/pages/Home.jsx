@@ -1,7 +1,7 @@
 // src/pages/Home.jsx
 
 import React, { useEffect, useMemo, useState } from "react";
-import { getAllCategories } from "../services/data.js";
+import { getAllCategories, getAllChannels } from "../services/data.js";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
@@ -15,28 +15,35 @@ import {
   Flame,
 } from "lucide-react";
 import { Helmet } from "react-helmet-async";
+import { useTheme } from "../context/ThemeContext";
 
 const Home = () => {
   const navigate = useNavigate();
+  const theme = useTheme();
 
   const [categories, setCategories] = useState([]);
+  const [channels, setChannels] = useState([]);
 
   useEffect(() => {
     let isMounted = true;
 
-    const fetchCategories = async () => {
+    const fetchData = async () => {
       try {
-        const data = await getAllCategories();
+        const [categoriesData, channelsData] = await Promise.all([
+          getAllCategories(),
+          getAllChannels(),
+        ]);
 
         if (isMounted) {
-          setCategories(data);
+          setCategories(categoriesData);
+          setChannels(channelsData);
         }
       } catch (error) {
-        console.error("Error fetching categories:", error);
+        console.error(error);
       }
     };
 
-    fetchCategories();
+    fetchData();
 
     return () => {
       isMounted = false;
@@ -112,7 +119,10 @@ const Home = () => {
     <>
       <div className="min-h-screen bg-[#f3f4f6]">
         {/* HERO */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-[#d10000] to-[#850000] px-6 py-20">
+        <section
+          className="relative overflow-hidden bg-gradient-to-br px-6 py-20"
+          style={{ backgroundColor: "var(--base-color)" }}
+        >
           <div className="relative mx-auto max-w-7xl">
             <motion.div
               initial={{ opacity: 0, y: 35 }}
@@ -125,7 +135,7 @@ const Home = () => {
               </div>
 
               <h1 className="max-w-4xl text-5xl font-black leading-tight text-white md:text-7xl">
-                Watch Breaking News Anytime
+                {theme.homeTitle}
               </h1>
 
               <p className="mt-6 max-w-2xl text-lg text-white/80 md:text-xl">
@@ -143,7 +153,12 @@ const Home = () => {
           {featuredVideos.length > 0 && (
             <div className="mb-24">
               <div className="mb-8 flex items-center gap-4">
-                <div className="rounded-2xl bg-[#d10000] p-4 text-white">
+                <div
+                  className="rounded-2xl p-4 text-white"
+                  style={{
+                    backgroundColor: theme.baseColor,
+                  }}
+                >
                   <Flame size={24} />
                 </div>
 
@@ -159,109 +174,130 @@ const Home = () => {
               </div>
 
               {/* BIGGER FEATURED SECTION */}
-              <div className="grid grid-cols-1 gap-10 xl:grid-cols-2">
-                {featuredVideos.map((video, i) => (
+              <div className="flex justify-center">
+                {featuredVideos[0] && (
                   <motion.div
-                    key={video.id}
                     initial={{ opacity: 0, y: 25 }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.08 }}
-                    whileHover={{ y: -10 }}
                     viewport={{ once: true }}
-                    onClick={() => openVideo(video, video.recommendedVideos)}
                     className="
-                    group
-                    cursor-pointer
-                    overflow-hidden
-                    rounded-[36px]
-                    bg-black
-                    shadow-2xl
-                  "
+        w-full
+        max-w-6xl
+        overflow-hidden
+        rounded-[36px]
+        bg-black
+        shadow-2xl
+      "
                   >
-                    <div className="relative">
-                      {/* BIGGER IMAGE */}
-                      <img
-                        src={getYoutubeThumbnail(video.youtubeUrl)}
-                        alt={video.title}
-                        className="
-                        h-[320px]
-                        w-full
-                        object-cover
-                        transition
-                        duration-700
-                        group-hover:scale-110
-                        md:h-[420px]
-                      "
+                    <div className="aspect-video w-full">
+                      <iframe
+                        className="h-full w-full"
+                        src={`https://www.youtube.com/embed/${getYoutubeVideoId(
+                          featuredVideos[0].youtubeUrl,
+                        )}?autoplay=1&rel=0`}
+                        title={featuredVideos[0].title}
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
                       />
+                    </div>
 
-                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent"></div>
+                    <div className="bg-white p-8">
+                      <p className="mb-3 text-sm font-semibold text-[#d10000]">
+                        {featuredVideos[0].categoryTitle}
+                      </p>
 
-                      {/* BADGE */}
-                      <div
-                        className="
-                        absolute
-                        left-5
-                        top-5
-                        rounded-full
-                        bg-red-600
-                        px-5
-                        py-2
-                        text-xs
-                        font-black
-                        uppercase
-                        tracking-[0.2em]
-                        text-white
-                      "
-                      >
-                        Breaking
+                      <h3 className="text-3xl font-black text-[#1f1f1f] md:text-5xl">
+                        {featuredVideos[0].title}
+                      </h3>
+
+                      <div className="mt-4 flex items-center gap-2 text-gray-600">
+                        <Eye size={18} />
+                        {featuredVideos[0].views || 0} views
                       </div>
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+            </div>
+          )}
 
-                      {/* CONTENT */}
-                      <div className="absolute bottom-6 left-6 right-6">
-                        <p className="mb-3 text-sm text-red-300">
-                          {video.categoryTitle}
-                        </p>
+          {/* ========================= */}
+          {/* CHANNELS */}
+          {/* ========================= */}
 
-                        <h3
-                          className="
-                          max-w-2xl
-                          text-3xl
-                          font-black
-                          leading-tight
-                          text-white
-                          md:text-4xl
-                        "
-                        >
-                          {video.title}
-                        </h3>
+          {channels.length > 0 && (
+            <div className="mb-24">
+              <div className="mb-8 flex items-center justify-between">
+                <div>
+                  <h2 className="text-4xl font-black text-[#1e1e1e]">
+                    News Channels
+                  </h2>
 
-                        <div className="mt-5 flex items-center gap-4">
-                          <div className="flex items-center gap-2 text-white/80">
-                            <Eye size={18} />
+                  <p className="text-gray-500">
+                    Watch videos from your favorite channels
+                  </p>
+                </div>
 
-                            <span>{video.views || 0} views</span>
-                          </div>
-                        </div>
-                      </div>
+                <button
+                  onClick={() => navigate("/channels")}
+                  className="
+          hidden
+          items-center
+          gap-2
+          rounded-xl
+          bg-white
+          px-5
+          py-3
+          font-semibold
+          text-[#d10000]
+          shadow-md
+          transition
+          hover:scale-105
+          md:flex
+        "
+                >
+                  View All
+                  <ChevronRight size={18} />
+                </button>
+              </div>
 
-                      {/* PLAY BUTTON */}
-                      <div
-                        className="
-                        absolute
-                        right-6
-                        top-6
-                        flex
-                        h-20
-                        w-20
-                        items-center
-                        justify-center
-                        rounded-full
-                        bg-[#d10000]
-                        text-white
-                        shadow-2xl
-                      "
-                      >
-                        <Play fill="white" size={32} />
+              <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {channels.map((channel) => (
+                  <motion.div
+                    key={channel.id}
+                    whileHover={{ y: -8 }}
+                    onClick={() =>
+                      navigate(`/channel/${channel.id}`, {
+                        state: channel,
+                      })
+                    }
+                    className="
+    cursor-pointer
+    overflow-hidden
+    rounded-3xl
+    bg-white
+    shadow-lg
+    transition-all
+    duration-300
+    hover:shadow-2xl
+  "
+                  >
+                    <div className="flex h-[220px] items-center justify-center bg-[#fafafa] p-6">
+                      <img
+                        src={channel.thumbnail}
+                        alt={channel.name}
+                        className="max-h-full max-w-full object-contain"
+                      />
+                    </div>
+
+                    <div className="border-t border-gray-100 p-5">
+                      <h3 className="text-xl font-black text-[#1f1f1f]">
+                        {channel.name}
+                      </h3>
+
+                      <div className="mt-2 text-sm text-gray-500">
+                        {(channel.videos || []).length} Videos
                       </div>
                     </div>
                   </motion.div>
@@ -292,7 +328,10 @@ const Home = () => {
                 {/* HEADER */}
                 <div className="mb-8 flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="rounded-2xl bg-[#d10000] p-4 text-white shadow-lg">
+                    <div
+                      className="rounded-2xl  p-4 text-white shadow-lg"
+                      style={{ backgroundColor: "var(--base-color)" }}
+                    >
                       {getIcon(category.icon)}
                     </div>
 
@@ -322,12 +361,12 @@ const Home = () => {
                     px-5
                     py-3
                     font-semibold
-                    text-[#d10000]
                     shadow-md
                     transition
                     hover:scale-105
                     md:flex
                   "
+                    style={{ color: "var(--base-color)" }}
                   >
                     View All
                     <ChevronRight size={18} />
@@ -397,10 +436,10 @@ const Home = () => {
                           items-center
                           justify-center
                           rounded-full
-                          bg-[#d10000]/95
                           text-white
                           shadow-2xl
                         "
+                          style={{ backgroundColor: "var(--base-color)" }}
                         >
                           <Play fill="white" size={24} />
                         </div>
@@ -427,7 +466,10 @@ const Home = () => {
                             {video.views || 0} views
                           </div>
 
-                          <div className="rounded-full bg-[#f5f5f5] p-2 text-[#d10000]">
+                          <div
+                            className="rounded-full bg-[#f5f5f5] p-2"
+                            style={{ color: "var(--base-color)" }}
+                          >
                             <ChevronRight size={18} />
                           </div>
                         </div>

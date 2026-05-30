@@ -1,15 +1,88 @@
 // src/pages/Contact.jsx
 
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Mail, Phone, MapPin, Send } from "lucide-react";
 import { FaInstagram, FaYoutube } from "react-icons/fa";
 
+import { saveContactMessage } from "../services/data";
+
 const Contact = () => {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    message: "",
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [alert, setAlert] = useState(null);
+
+  const handleChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (
+      !formData.name.trim() ||
+      !formData.email.trim() ||
+      !formData.message.trim()
+    ) {
+      setAlert({
+        type: "error",
+        message: "Please fill all fields.",
+      });
+
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const result = await saveContactMessage(
+        formData.name,
+        formData.email,
+        formData.message,
+      );
+
+      if (result.success) {
+        setFormData({
+          name: "",
+          email: "",
+          message: "",
+        });
+
+        setAlert({
+          type: "success",
+          message:
+            "✅ Your message has been sent successfully. We'll get back to you soon!",
+        });
+
+        setTimeout(() => setAlert(null), 5000);
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      setAlert({
+        type: "error",
+        message: "Something went wrong. Please try again.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#f3f4f6]">
       {/* HERO */}
-      <section className="bg-gradient-to-br from-[#d10000] to-[#850000] px-6 py-20">
+      <section
+        className="bg-gradient-to-br px-6 py-20"
+        style={{ backgroundColor: "var(--base-color)" }}
+      >
         <div className="mx-auto max-w-7xl">
           <motion.div
             initial={{ opacity: 0, y: 35 }}
@@ -45,7 +118,10 @@ const Contact = () => {
 
           <div className="mt-10 space-y-6">
             <div className="flex items-center gap-5">
-              <div className="rounded-2xl bg-[#d10000] p-4 text-white">
+              <div
+                className="rounded-2xl  p-4 text-white"
+                style={{ backgroundColor: "var(--base-color)" }}
+              >
                 <Mail size={24} />
               </div>
 
@@ -56,7 +132,10 @@ const Contact = () => {
             </div>
 
             <div className="flex items-center gap-5">
-              <div className="rounded-2xl bg-[#d10000] p-4 text-white">
+              <div
+                className="rounded-2xl  p-4 text-white"
+                style={{ backgroundColor: "var(--base-color)" }}
+              >
                 <Phone size={24} />
               </div>
 
@@ -67,7 +146,10 @@ const Contact = () => {
             </div>
 
             <div className="flex items-center gap-5">
-              <div className="rounded-2xl bg-[#d10000] p-4 text-white">
+              <div
+                className="rounded-2xl p-4 text-white"
+                style={{ backgroundColor: "var(--base-color)" }}
+              >
                 <MapPin size={24} />
               </div>
 
@@ -80,10 +162,16 @@ const Contact = () => {
 
           {/* SOCIALS */}
           <div className="mt-12 flex items-center gap-5">
-            <div className="flex h-14 w-14 cursor-pointer items-center justify-center rounded-2xl bg-[#d10000] text-white transition hover:scale-110">
+            <div
+              className="flex h-14 w-14 cursor-pointer items-center justify-center rounded-2xl  text-white transition hover:scale-110"
+              style={{ backgroundColor: "var(--base-color)" }}
+            >
               <FaInstagram size={24} />
             </div>
-            <div className="flex h-14 w-14 cursor-pointer items-center justify-center rounded-2xl bg-[#d10000] text-white transition hover:scale-110">
+            <div
+              className="flex h-14 w-14 cursor-pointer items-center justify-center rounded-2xl  text-white transition hover:scale-110"
+              style={{ backgroundColor: "var(--base-color)" }}
+            >
               <FaYoutube size={24} />
             </div>
           </div>
@@ -98,7 +186,22 @@ const Contact = () => {
         >
           <h2 className="text-4xl font-black text-[#1f1f1f]">Send Message</h2>
 
-          <form className="mt-10 space-y-6">
+          {/* Alert of message sent! */}
+          {alert && (
+            <motion.div
+              initial={{ opacity: 0, y: -15 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`mb-6 rounded-2xl border p-4 font-medium ${
+                alert.type === "success"
+                  ? "border-green-200 bg-green-50 text-green-700"
+                  : "border-red-200 bg-red-50 text-red-700"
+              }`}
+            >
+              {alert.message}
+            </motion.div>
+          )}
+
+          <form onSubmit={handleSubmit} className="mt-10 space-y-6">
             <div>
               <label className="mb-2 block font-semibold text-gray-700">
                 Full Name
@@ -106,6 +209,9 @@ const Contact = () => {
 
               <input
                 type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
                 placeholder="Enter your name"
                 className="w-full rounded-2xl border border-gray-200 px-5 py-4 outline-none transition focus:border-[#d10000]"
               />
@@ -118,6 +224,9 @@ const Contact = () => {
 
               <input
                 type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
                 placeholder="Enter your email"
                 className="w-full rounded-2xl border border-gray-200 px-5 py-4 outline-none transition focus:border-[#d10000]"
               />
@@ -130,17 +239,22 @@ const Contact = () => {
 
               <textarea
                 rows="6"
+                name="message"
+                value={formData.message}
+                onChange={handleChange}
                 placeholder="Write your message..."
                 className="w-full resize-none rounded-2xl border border-gray-200 px-5 py-4 outline-none transition focus:border-[#d10000]"
-              ></textarea>
+              />
             </div>
 
             <button
               type="submit"
-              className="flex items-center gap-3 rounded-2xl bg-[#d10000] px-8 py-4 font-bold text-white shadow-lg shadow-red-200 transition hover:scale-105"
+              disabled={loading}
+              className="flex items-center gap-3 rounded-2xl px-8 py-4 font-bold text-white shadow-lg shadow-red-200 transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-70"
+              style={{ backgroundColor: "var(--base-color)" }}
             >
               <Send size={20} />
-              Send Message
+              {loading ? "Sending..." : "Send Message"}
             </button>
           </form>
         </motion.div>

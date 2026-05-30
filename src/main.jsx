@@ -15,37 +15,49 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import CookiePolicy from "./pages/CookiePolicy";
 import NotFound from "./pages/NotFound";
+import Channels from "./pages/Channels";
+import ChannelPage from "./pages/ChannelPage";
 
 // Components
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ScrollToTop from "./components/ScrollToTop";
+import FloatingSocials from "./components/FloatingSocials";
+
+// Context Providers
+import { ThemeProvider } from "./context/ThemeContext";
 
 // SEO
 import { HelmetProvider } from "react-helmet-async";
 
 createRoot(document.getElementById("root")).render(
   <HelmetProvider>
-    <BrowserRouter>
-      {/* Automatically scrolls to top */}
-      <ScrollToTop />
+    <ThemeProvider>
+      <BrowserRouter>
+        {/* Automatically scrolls to top */}
+        <ScrollToTop />
 
-      <Navbar />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/video/:id" element={<VideoPlayer />} />
-        <Route path="/category/:id" element={<CategoryPage />} />
-        <Route path="/categories" element={<Categories />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/download-app" element={<DownloadApp />} />
-        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-        <Route path="/terms-of-service" element={<TermsOfService />} />
-        <Route path="/cookie-policy" element={<CookiePolicy />} />
+        <Navbar />
+        <FloatingSocials />
 
-        {/* 404 Not Found Page */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-      <Footer />
-    </BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/video/:id" element={<VideoPlayer />} />
+          <Route path="/category/:id" element={<CategoryPage />} />
+          <Route path="/categories" element={<Categories />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/download-app" element={<DownloadApp />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-of-service" element={<TermsOfService />} />
+          <Route path="/cookie-policy" element={<CookiePolicy />} />
+          <Route path="/channels" element={<Channels />} />
+          <Route path="/channel/:id" element={<ChannelPage />} />
+
+          {/* 404 Not Found Page */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+        <Footer />
+      </BrowserRouter>
+    </ThemeProvider>
   </HelmetProvider>,
 );

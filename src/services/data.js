@@ -11,10 +11,15 @@ import {
   getDoc,
   updateDoc,
   increment,
+  addDoc,
+  serverTimestamp,
 } from "firebase/firestore";
 
 const CACHE_KEY = "cached_categories";
-const CACHE_DURATION = 1000 * 60 * 5; // 5 minutes
+// const CACHE_DURATION = 1000 * 60 * 1; // 1 minutes
+
+// 0 MINUTES FOR DEV, 1 minute for PROD
+const CACHE_DURATION = 1000 * 60 * 0; // 0 minutes
 
 export async function getAllCategories() {
   try {
@@ -206,5 +211,61 @@ export async function incrementVideoViews(videoId) {
     }
   } catch (error) {
     console.error("ERROR IN incrementVideoViews", error);
+  }
+}
+
+export async function getAllChannels() {
+  try {
+    const q = query(collection(db, "channels"), orderBy("createdAt", "desc"));
+
+    const snapshot = await getDocs(q);
+
+    return snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+}
+
+export async function getThemeSettings() {
+  try {
+    const docRef = doc(db, "settings", "theme");
+
+    const snapshot = await getDoc(docRef);
+
+    if (!snapshot.exists()) return null;
+
+    return snapshot.data();
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+
+// SAVE CONTACT FORM MESSAGE
+
+export async function saveContactMessage(name, email, message) {
+  try {
+    const docRef = await addDoc(collection(db, "contactMessages"), {
+      name: name.trim(),
+      email: email.trim().toLowerCase(),
+      message: message.trim(),
+      createdAt: serverTimestamp(),
+    });
+
+    return {
+      success: true,
+      id: docRef.id,
+    };
+  } catch (error) {
+    console.error("ERROR IN saveContactMessage", error);
+
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 }

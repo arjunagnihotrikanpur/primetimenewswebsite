@@ -1,6 +1,6 @@
 // src/components/Footer.jsx
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ChevronRight, Mail, Phone, MapPin } from "lucide-react";
 
@@ -12,20 +12,35 @@ import {
 } from "react-icons/fa6";
 
 import logo from "../assets/logo.png";
+import { getAllCategories } from "../services/data";
 
 const Footer = () => {
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await getAllCategories();
+        setCategories(data);
+      } catch (error) {
+        console.error("Error loading categories:", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
   return (
     <footer className="relative overflow-hidden bg-[#0f1115] text-white">
-      {/* TOP RED LINE */}
-      <div className="h-[4px] w-full bg-[#d10000]" />
+      <div
+        className="h-[4px] w-full"
+        style={{ backgroundColor: "var(--base-color)" }}
+      />
 
-      {/* BACKGROUND GLOW */}
       <div className="absolute -left-24 top-0 h-72 w-72 rounded-full bg-red-700/20 blur-3xl"></div>
-
       <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-red-700/20 blur-3xl"></div>
 
       <div className="relative mx-auto max-w-7xl px-5 py-16">
-        {/* TOP GRID */}
         <div className="grid grid-cols-1 gap-14 md:grid-cols-2 lg:grid-cols-4">
           {/* BRAND */}
           <div>
@@ -40,7 +55,6 @@ const Footer = () => {
               with fast updates, live channels and modern streaming experience.
             </p>
 
-            {/* SOCIALS */}
             <div className="mt-8 flex items-center gap-4">
               {[
                 {
@@ -93,22 +107,10 @@ const Footer = () => {
 
             <div className="mt-7 flex flex-col gap-4">
               {[
-                {
-                  title: "Home",
-                  path: "/",
-                },
-                {
-                  title: "Categories",
-                  path: "/categories",
-                },
-                {
-                  title: "Contact",
-                  path: "/contact",
-                },
-                {
-                  title: "Download App",
-                  path: "/download-app",
-                },
+                { title: "Home", path: "/" },
+                { title: "Categories", path: "/categories" },
+                { title: "Contact", path: "/contact" },
+                { title: "Download App", path: "/download-app" },
               ].map((item, index) => (
                 <Link
                   key={index}
@@ -131,39 +133,35 @@ const Footer = () => {
                       group-hover:translate-x-1
                     "
                   />
-
                   {item.title}
                 </Link>
               ))}
             </div>
           </div>
 
-          {/* CATEGORIES */}
+          {/* FIREBASE CATEGORIES */}
           <div>
             <h3 className="text-2xl font-black">Popular Categories</h3>
 
             <div className="mt-7 flex flex-col gap-4">
-              {[
-                "Indian News",
-                "International News",
-                "Politics",
-                "Business",
-                "Sports",
-                "Technology",
-              ].map((category, index) => (
-                <div
-                  key={index}
+              {categories.slice(0, 6).map((category) => (
+                <Link
+                  key={category.id}
+                  to={`/category/${category.id}`}
+                  state={category}
                   className="
                     flex
                     items-center
                     gap-3
                     text-gray-400
+                    transition
+                    hover:text-white
                   "
                 >
                   <div className="h-2 w-2 rounded-full bg-[#d10000]" />
 
-                  {category}
-                </div>
+                  {category.title}
+                </Link>
               ))}
             </div>
           </div>
@@ -180,7 +178,6 @@ const Footer = () => {
 
                 <div>
                   <p className="text-sm text-gray-500">Email</p>
-
                   <p className="mt-1 text-gray-300">contact@primetimes.com</p>
                 </div>
               </div>
@@ -192,7 +189,6 @@ const Footer = () => {
 
                 <div>
                   <p className="text-sm text-gray-500">Phone</p>
-
                   <p className="mt-1 text-gray-300">+91 9876543210</p>
                 </div>
               </div>
@@ -204,7 +200,6 @@ const Footer = () => {
 
                 <div>
                   <p className="text-sm text-gray-500">Location</p>
-
                   <p className="mt-1 text-gray-300">New Delhi, India</p>
                 </div>
               </div>
@@ -212,10 +207,8 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* DIVIDER */}
         <div className="my-12 h-[1px] w-full bg-white/10" />
 
-        {/* BOTTOM */}
         <div className="flex flex-col items-center justify-between gap-5 text-center md:flex-row md:text-left">
           <p className="text-sm text-gray-500">
             © {new Date().getFullYear()} Prime Times News. All rights reserved.

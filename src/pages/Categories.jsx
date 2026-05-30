@@ -37,7 +37,10 @@ const Categories = () => {
   return (
     <div className="min-h-screen bg-[#f3f4f6]">
       {/* HERO */}
-      <section className="bg-gradient-to-br from-[#d10000] to-[#850000] px-6 py-20">
+      <section
+        className="bg-gradient-to-br px-6 py-20"
+        style={{ backgroundColor: "var(--base-color)" }}
+      >
         <div className="mx-auto max-w-7xl">
           <motion.div
             initial={{ opacity: 0, y: 35 }}
