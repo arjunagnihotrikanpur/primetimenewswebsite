@@ -23,26 +23,6 @@ const CACHE_DURATION = 1000 * 60 * 0; // 0 minutes
 
 export async function getAllCategories() {
   try {
-    // =========================
-    // 1. CHECK LOCAL CACHE
-    // =========================
-
-    const cachedData = localStorage.getItem(CACHE_KEY);
-
-    if (cachedData) {
-      const parsed = JSON.parse(cachedData);
-
-      const isCacheValid = Date.now() - parsed.timestamp < CACHE_DURATION;
-
-      if (isCacheValid) {
-        return parsed.data;
-      }
-    }
-
-    // =========================
-    // 2. FIRESTORE QUERY
-    // =========================
-
     const q = query(
       collection(db, "categories"),
       orderBy("order", "asc"),
@@ -51,41 +31,26 @@ export async function getAllCategories() {
 
     const querySnapshot = await getDocs(q);
 
-    // =========================
-    // 3. OPTIMIZE DATA
-    // =========================
-
     const categories = querySnapshot.docs.map((doc) => {
       const data = doc.data();
 
       return {
         id: doc.id,
-
         title: data.title || "",
         icon: data.icon || "",
         order: data.order || 0,
 
-        // FILTER HIDDEN VIDEOS
+        // Filter hidden videos
         videos: data.videos?.filter((video) => !video.hidden) || [],
       };
     });
 
-    // =========================
-    // 4. SAVE TO CACHE
-    // =========================
-
-    localStorage.setItem(
-      CACHE_KEY,
-      JSON.stringify({
-        timestamp: Date.now(),
-        data: categories,
-      }),
-    );
+    // Force numeric ordering (handles order stored as strings)
+    categories.sort((a, b) => Number(a.order) - Number(b.order));
 
     return categories;
   } catch (error) {
     console.error("ERROR IN getAllCategories", error);
-
     return [];
   }
 }
