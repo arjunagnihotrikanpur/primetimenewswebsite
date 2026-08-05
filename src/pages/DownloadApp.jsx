@@ -84,28 +84,31 @@ const DownloadApp = () => {
             Get the latest version of Prime Times News App for Android devices.
           </p>
 
-          <button
+          <a
+            href="https://play.google.com/store/apps/details?id=com.arjunagnihotri14a.primetimesnews&pcampaignid=web_share"
+            target="_blank"
+            rel="noopener noreferrer"
             className="
-              mt-10
-              flex
-              items-center
-              gap-4
-              rounded-2xl
-              bg-[#d10000]
-              px-8
-              py-5
-              text-lg
-              font-bold
-              text-white
-              shadow-xl
-              shadow-red-200
-              transition
-              hover:scale-105
-            "
+    mt-10
+    inline-flex
+    items-center
+    gap-4
+    rounded-2xl
+    bg-[#d10000]
+    px-8
+    py-5
+    text-lg
+    font-bold
+    text-white
+    shadow-xl
+    shadow-red-200
+    transition
+    hover:scale-105
+  "
           >
             <Download size={24} />
-            Download APK
-          </button>
+            Download From Play Store
+          </a>
 
           <div className="mt-8 rounded-2xl border border-red-100 bg-red-50 p-5">
             <p className="text-sm font-medium text-red-700">
