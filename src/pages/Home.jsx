@@ -399,6 +399,32 @@ const Home = () => {
   // Autoplaying a YouTube iframe the instant the page renders is one of the
   // heaviest things on this page — this defers it until the user asks for it.
   const [heroPlaying, setHeroPlaying] = useState(false);
+  const heroIframeRef = useRef(null);
+  const heroContainerRef = useRef(null);
+
+  // Auto-pause the hero video once it's scrolled out of view.
+  useEffect(() => {
+    if (!heroPlaying) return;
+    const node = heroContainerRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const iframe = heroIframeRef.current;
+        if (!iframe || !iframe.contentWindow) return;
+
+        const command = entry.isIntersecting ? "playVideo" : "pauseVideo";
+        iframe.contentWindow.postMessage(
+          JSON.stringify({ event: "command", func: command, args: [] }),
+          "*",
+        );
+      },
+      { threshold: 0.25 }, // consider it "out of view" once mostly scrolled past
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [heroPlaying]);
 
   return (
     <>
@@ -472,13 +498,21 @@ const Home = () => {
         shadow-2xl
       "
                   >
-                    <div className="relative aspect-video w-full">
+                    <div
+                      ref={heroContainerRef}
+                      className="relative aspect-video w-full"
+                    >
                       {heroPlaying ? (
                         <iframe
+                          ref={heroIframeRef}
                           className="h-full w-full"
                           src={`https://www.youtube.com/embed/${getYoutubeVideoId(
                             featuredVideos[0].youtubeUrl,
-                          )}?autoplay=1&rel=0`}
+                          )}?autoplay=1&rel=0&enablejsapi=1&origin=${
+                            typeof window !== "undefined"
+                              ? window.location.origin
+                              : ""
+                          }`}
                           title={featuredVideos[0].title}
                           frameBorder="0"
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
